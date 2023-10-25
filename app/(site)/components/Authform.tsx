@@ -8,21 +8,25 @@ import {BsGithub, BsGoogle} from 'react-icons/bs';
 import {toast} from 'react-hot-toast';
 import axios from 'axios';
 import { signIn, useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import Credentials from 'next-auth/providers/credentials';
 
 type Variant = 'LOGIN' | 'REGISTER';
 
 const Authform = () => {
 
     const session = useSession();
+    const router = useRouter();
     const [variant, setVariant] = useState<Variant>('LOGIN');
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         if(session?.status==='authenticated'){
             console.log('Authenticated');
+            router.push('/users');
         }
         
-    }, [session?.status]);
+    }, [session?.status, router]);
 
     const toggleVariant = useCallback(() => {
         if(variant==='LOGIN'){
@@ -53,7 +57,7 @@ const Authform = () => {
             axios.post('/api/register', data)
             .then(() => {
                 toast.success('Registered successfully')
-                setVariant('LOGIN')
+                signIn('credentials', data);
             })
             .catch(() => toast.error('User already exists'))
             .finally(() => setIsLoading(false));
@@ -70,6 +74,7 @@ const Authform = () => {
                 }
 
                 if(callback?.ok && !callback?.error){
+                    router.push('/users');
                     toast.success('Logged In');
                 }
             })
